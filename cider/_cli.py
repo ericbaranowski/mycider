@@ -33,10 +33,7 @@ class CLI(click.Group):
             "{0} remove-default [-g] NAME KEY",
             "{0} addlink NAME ITEM...",
             "{0} unlink NAME",
-            "{0} set-icon APP ICON",
-            "{0} remove-icon APP",
             "{0} apply-defaults",
-            "{0} apply-icons",
             "{0} run-scripts",
             "{0} restore",
             "{0} relink",
@@ -202,27 +199,6 @@ def remove_default(cider, name, key, globaldomain=None):
 @click.pass_obj
 def apply_defaults(cider):
     cider.apply_defaults()
-
-
-@cli.command("set-icon")
-@click.argument("app")
-@click.argument("icon")
-@click.pass_obj
-def set_icon(cider, app, icon):
-    cider.set_icon(app, icon)
-
-
-@cli.command("remove-icon")
-@click.argument("app")
-@click.pass_obj
-def remove_icon(cider, app):
-    cider.remove_icon(app)
-
-
-@cli.command("apply-icons")
-@click.pass_obj
-def apply_icons(cider):
-    cider.apply_icons()
 
 
 @cli.command("run-scripts")

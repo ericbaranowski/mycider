@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function
-#from . import _osx as osx
 from . import _tty as tty
 from .exceptions import (
     UnsupportedOSError, XcodeMissingError, BrewMissingError,
@@ -79,7 +78,7 @@ class Cider(object):
                 os.path.expanduser("~"),
                 "Library",
                 "Application Support",
-                "com.msanders.cider"
+                "com.ericbaranowski.mycider"
             )
 
     @lazyproperty
@@ -245,7 +244,6 @@ class Cider(object):
 
         self.relink()
         self.apply_defaults()
-        self.apply_icons()
         self.run_scripts(after=True)
 
     def install(self, *formulas, **kwargs):
@@ -409,16 +407,12 @@ class Cider(object):
                 ), warning=force)
 
         if not linked and force:
-            try:
-                #osx.move_to_trash(target)
-                print(tty.progress("Moved {0} to trash").format(target))
-            except OSError as e:
-                tty.puterr("Error moving {0} to trash: {1}".format(
-                    target, str(e))
+            tty.puterr("Error moving {0} to trash: {1}".format(
+                target, str(e))
                 )
                 return False
             return self.mklink(source, target, force)
-
+    
         return linked
 
     def installed(self, prefix=None):
@@ -439,8 +433,6 @@ class Cider(object):
         brewed = self.brew.ls()
 
         def brew_orphan(formula):
-            # Temporary workaround to avoid bug with brew-pip.
-            # https://github.com/msanders/cider/issues/25
             if formula.startswith("pip-"):
                 return False
             if self.cask:
@@ -542,35 +534,6 @@ class Cider(object):
             spawn([script], shell=True, debug=self.debug,
                   cwd=self.cider_dir, env=self.env)
 
-    def set_icon(self, app, icon):
-        def transform(icons):
-            icons[app] = icon
-            return icons
-
-        self._modify_bootstrap("icons", transform, {})
-        _apply_icon(app, icon)
-
-    def remove_icon(self, app):
-        def transform(icons):
-            if icons:
-                del icons[app]
-            return icons
-
-        #app_path = osx.path_for_app(app)
-        if not app_path:
-            raise AppMissingError("Application not found: '{0}'".format(app))
-
-        self._modify_bootstrap("icons", transform)
-        #osx.remove_icon(app_path)
-
-    def apply_icons(self):
-        bootstrap = read_config(self.bootstrap_file)
-        icons = bootstrap.get("icons", {})
-        for app, icon in icons.items():
-            _apply_icon(app, icon)
-
-        tty.puts("Applied icons")
-
     def add_symlink(self, name, target):
         target = collapseuser(os.path.normpath(target))
         target_dir = os.path.dirname(target)
@@ -662,24 +625,3 @@ class Cider(object):
         self._update_target_cache(
             set(self._cached_targets()) - removed_targets
         )
-
-
-def _apply_icon(app, icon):
-    #app_path = osx.path_for_app(app)
-    if not app_path:
-        raise AppMissingError("Application not found: '{0}'".format(app))
-
-    try:
-        components = urlparse(icon)
-        if not components["scheme"] or components['scheme'] == "file":
-            icon_path = components["path"]
-        else:
-            tmpdir = mkdtemp()
-            icon_path = os.path.join(tmpdir,
-                                     os.path.basename(components["path"]))
-            print(tty.progress("Downloading {0} icon: {1}".format(app, icon)))
-            curl(icon, icon_path)
-    except ValueError:
-        icon_path = icon
-
-    osx.set_icon(app_path, os.path.expanduser(icon_path))

@@ -66,7 +66,7 @@ setup(
     description='Hassle-free bootstrapping using Homebrew.',
     long_description=read_description(),
     license='MIT',
-    ext_modules=[ext],
+    #ext_modules=[ext],
     platforms=["osx"],
     keywords=["cider", "homebrew", "bootstrap", "automation"],
     classifiers=[
